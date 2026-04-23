@@ -1,0 +1,24 @@
+# Dépendances
+node_modules/
+frontend/node_modules/
+
+# Build
+frontend/dist/
+
+# Données (NE JAMAIS committer — propres à chaque installation)
+backend/data/
+backend/uploads/
+
+# Environnement
+.env
+
+# Logs
+logs.txt
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Graphify
+graphify-out/
