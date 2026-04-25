@@ -87,8 +87,8 @@ export default function SettingsPage() {
                       value={editingRoom.icon}
                       onChange={e => setEditingRoom(r => ({ ...r, icon: e.target.value }))}
                       placeholder="🎵"
-                      className="w-14 bg-zinc-700 border border-zinc-600 text-white text-center rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500/40"
-                      maxLength={2}
+                      title="Windows : Win + .  —  Mac : Cmd + Ctrl + Espace"
+                      className="w-16 bg-zinc-700 border border-zinc-600 text-white text-center rounded-lg px-2 py-1.5 text-lg focus:outline-none focus:ring-1 focus:ring-violet-500/40"
                     />
                     <input
                       type="text"
@@ -120,8 +120,8 @@ export default function SettingsPage() {
                 value={newRoom.icon}
                 onChange={e => setNewRoom(r => ({ ...r, icon: e.target.value }))}
                 placeholder="🎵"
-                className="w-14 bg-zinc-800 border border-zinc-700 text-white text-center placeholder-zinc-600 rounded-xl px-2 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 transition"
-                maxLength={2}
+                title="Windows : Win + .  —  Mac : Cmd + Ctrl + Espace"
+                className="w-16 bg-zinc-800 border border-zinc-700 text-white text-center placeholder-zinc-600 rounded-xl px-2 py-2.5 text-lg focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 transition"
               />
               <input
                 type="text"
