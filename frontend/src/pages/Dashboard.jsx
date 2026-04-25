@@ -106,17 +106,9 @@ export default function Dashboard() {
     rr(0, 0, W, H, 16)
     ctx.fill()
 
-    // Barre accent gauche
+    // Barre accent gauche (simple)
     ctx.fillStyle = accent
-    ctx.fillRect(0, 0, 6, H)
-    ctx.fillStyle = '#111827'
-    ctx.fillRect(0, 0, 6, 16)
-    ctx.fillRect(0, H - 16, 6, 16)
-    ctx.fillStyle = accent
-    rr(0, 0, 16, 16, 8); ctx.fill()
-    rr(0, H - 16, 16, 16, 8); ctx.fill()
-    ctx.fillStyle = accent
-    ctx.fillRect(0, 8, 6, H - 16)
+    ctx.fillRect(0, 16, 6, H - 32)
 
     const CX = 6 + PAD
 
@@ -128,7 +120,8 @@ export default function Dashboard() {
     // Badge room (haut droite)
     if (event.room_name) {
       ctx.font = `700 13px ${FONT}`
-      const rW = ctx.measureText(event.room_name).width + 36
+      const roomLabel = `${event.room_icon ? event.room_icon + ' ' : ''}${event.room_name}`
+      const rW = ctx.measureText(roomLabel).width + 36
       const rH = 34
       const rX = W - FLYER_W - PAD - rW
       const rY = PAD - 4
@@ -136,7 +129,7 @@ export default function Dashboard() {
       rr(rX, rY, rW, rH, rH / 2); ctx.fill()
       ctx.fillStyle = '#fff'
       ctx.textBaseline = 'middle'
-      ctx.fillText(event.room_name, rX + 18, rY + rH / 2)
+      ctx.fillText(roomLabel, rX + 18, rY + rH / 2)
       ctx.textBaseline = 'alphabetic'
     }
 
