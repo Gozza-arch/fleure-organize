@@ -197,23 +197,23 @@ export default function CalendarPage() {
 
                       {/* Titre + DJs */}
                       {firstEvent && (
-                        <div className="flex-1 flex flex-col justify-end">
+                        <div className="flex-1 flex flex-col justify-start mt-1">
                           <div
-                            className="font-extrabold text-base leading-tight tracking-wide uppercase text-white"
+                            className="font-extrabold text-lg leading-tight tracking-wide uppercase text-white"
                             style={{ textShadow: '0 1px 6px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.8)' }}
                           >
                             {firstEvent.title}
                           </div>
 
                           {firstEvent.djs?.length > 0 && (
-                            <div className="mt-1.5 space-y-0.5">
+                            <div className="mt-2 space-y-1">
                               {firstEvent.djs.map(d => (
                                 <div
                                   key={d.id}
-                                  className="flex items-center gap-1 text-white text-xs font-semibold"
+                                  className="flex items-center gap-1.5 text-white text-sm font-semibold"
                                   style={{ textShadow: '0 1px 4px rgba(0,0,0,0.95)' }}
                                 >
-                                  <svg className="w-2.5 h-2.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                                   </svg>
                                   <span>{d.name}</span>
