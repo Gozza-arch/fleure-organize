@@ -1,73 +1,75 @@
-import { Router } from 'express';
-import { db } from '../database.js';
+import { Router } from 'express'
+import { db } from '../db.js'
 
-const router = Router();
+const router = Router()
 
 // GET /api/rooms
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const rooms = db.prepare('SELECT * FROM rooms ORDER BY name').all();
-    res.json(rooms);
+    const result = await db.execute({ sql: 'SELECT * FROM rooms ORDER BY name', args: [] })
+    res.json(result.rows)
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
 // GET /api/rooms/:id
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const room = db.prepare('SELECT * FROM rooms WHERE id = ?').get(req.params.id);
-    if (!room) return res.status(404).json({ error: 'Room not found' });
-    res.json(room);
+    const result = await db.execute({ sql: 'SELECT * FROM rooms WHERE id = ?', args: [req.params.id] })
+    const room = result.rows[0]
+    if (!room) return res.status(404).json({ error: 'Room not found' })
+    res.json(room)
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
 // POST /api/rooms
-router.post('/', (req, res) => {
-  const { name, color = '#6366f1' } = req.body;
-  if (!name) return res.status(400).json({ error: 'name is required' });
+router.post('/', async (req, res) => {
+  const { name, color = '#6366f1' } = req.body
+  if (!name) return res.status(400).json({ error: 'name is required' })
 
   try {
-    const info = db
-      .prepare('INSERT INTO rooms (name, color) VALUES (?, ?)')
-      .run(name, color);
-    const room = db.prepare('SELECT * FROM rooms WHERE id = ?').get(info.lastInsertRowid);
-    res.status(201).json(room);
+    const info = await db.execute({ sql: 'INSERT INTO rooms (name, color) VALUES (?, ?)', args: [name, color] })
+    const result = await db.execute({ sql: 'SELECT * FROM rooms WHERE id = ?', args: [Number(info.lastInsertRowid)] })
+    res.status(201).json(result.rows[0])
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
 // PUT /api/rooms/:id
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
-    const room = db.prepare('SELECT * FROM rooms WHERE id = ?').get(req.params.id);
-    if (!room) return res.status(404).json({ error: 'Room not found' });
+    const existing = await db.execute({ sql: 'SELECT * FROM rooms WHERE id = ?', args: [req.params.id] })
+    const room = existing.rows[0]
+    if (!room) return res.status(404).json({ error: 'Room not found' })
 
-    const { name, color } = req.body;
-    db.prepare(
-      'UPDATE rooms SET name = COALESCE(?, name), color = COALESCE(?, color) WHERE id = ?'
-    ).run(name || null, color || null, room.id);
+    const { name, color } = req.body
+    await db.execute({
+      sql: 'UPDATE rooms SET name = COALESCE(?, name), color = COALESCE(?, color) WHERE id = ?',
+      args: [name || null, color || null, room.id],
+    })
 
-    const updated = db.prepare('SELECT * FROM rooms WHERE id = ?').get(room.id);
-    res.json(updated);
+    const updated = await db.execute({ sql: 'SELECT * FROM rooms WHERE id = ?', args: [room.id] })
+    res.json(updated.rows[0])
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
 // DELETE /api/rooms/:id
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const room = db.prepare('SELECT * FROM rooms WHERE id = ?').get(req.params.id);
-    if (!room) return res.status(404).json({ error: 'Room not found' });
-    db.prepare('DELETE FROM rooms WHERE id = ?').run(req.params.id);
-    res.json({ success: true });
+    const existing = await db.execute({ sql: 'SELECT * FROM rooms WHERE id = ?', args: [req.params.id] })
+    const room = existing.rows[0]
+    if (!room) return res.status(404).json({ error: 'Room not found' })
+    await db.execute({ sql: 'DELETE FROM rooms WHERE id = ?', args: [req.params.id] })
+    res.json({ success: true })
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
-export default router;
+export default router

@@ -2,6 +2,7 @@
   "name": "fleure-organize",
   "version": "1.0.0",
   "description": "Gestionnaire d'événements DJ",
+  "type": "module",
   "scripts": {
     "dev": "concurrently \"bun run dev:backend\" \"bun run dev:frontend\"",
     "dev:backend": "bun --watch backend/server.js",
@@ -11,6 +12,8 @@
     "start": "bun backend/server.js"
   },
   "dependencies": {
+    "@libsql/client": "^0.14.0",
+    "cloudinary": "^2.5.1",
     "concurrently": "^8.2.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.1",

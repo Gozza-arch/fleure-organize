@@ -1,177 +1,160 @@
-import { Router } from 'express';
-import { db } from '../database.js';
-import { getDJStats, checkRepeatRisk } from '../services/antiRepeatService.js';
+import { Router } from 'express'
+import { db } from '../db.js'
+import { getDJStats, checkRepeatRisk } from '../services/antiRepeatService.js'
 
-const router = Router();
+const router = Router()
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-function fetchDJGenres(djId) {
-  return db
-    .prepare('SELECT genre FROM dj_genres WHERE dj_id = ? ORDER BY genre')
-    .all(djId)
-    .map((r) => r.genre);
+async function fetchDJGenres(djId) {
+  const result = await db.execute({
+    sql: 'SELECT genre FROM dj_genres WHERE dj_id = ? ORDER BY genre',
+    args: [djId],
+  })
+  return result.rows.map((r) => r.genre)
 }
 
-function fetchDJRooms(djId) {
-  return db
-    .prepare(
-      `SELECT r.id, r.name, r.color
-       FROM dj_rooms dr
-       JOIN rooms r ON r.id = dr.room_id
-       WHERE dr.dj_id = ?`
-    )
-    .all(djId);
+async function fetchDJRooms(djId) {
+  const result = await db.execute({
+    sql: `SELECT r.id, r.name, r.color
+          FROM dj_rooms dr
+          JOIN rooms r ON r.id = dr.room_id
+          WHERE dr.dj_id = ?`,
+    args: [djId],
+  })
+  return result.rows
 }
 
-function buildFullDJ(dj) {
-  return {
-    ...dj,
-    genres: fetchDJGenres(dj.id),
-    rooms: fetchDJRooms(dj.id),
-  };
+async function buildFullDJ(dj) {
+  const [genres, rooms] = await Promise.all([fetchDJGenres(dj.id), fetchDJRooms(dj.id)])
+  return { ...dj, genres, rooms }
 }
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 
 // GET /api/djs
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const djs = db
-      .prepare(
-        `SELECT d.*,
-           (SELECT COUNT(*) FROM dj_performance_log WHERE dj_id = d.id) as performance_count
-         FROM djs d
-         ORDER BY d.name`
-      )
-      .all();
-
-    const result = djs.map(buildFullDJ);
-    res.json(result);
+    const result = await db.execute({
+      sql: `SELECT d.*,
+              (SELECT COUNT(*) FROM dj_performance_log WHERE dj_id = d.id) as performance_count
+            FROM djs d
+            ORDER BY d.name`,
+      args: [],
+    })
+    const djs = result.rows
+    const full = await Promise.all(djs.map(buildFullDJ))
+    res.json(full)
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
-// GET /api/djs/:id/stats  (must come before /:id to avoid shadowing)
-router.get('/:id/stats', (req, res) => {
+// GET /api/djs/:id/stats  (avant /:id)
+router.get('/:id/stats', async (req, res) => {
   try {
-    const stats = getDJStats(req.params.id);
-    res.json(stats);
+    const stats = await getDJStats(req.params.id)
+    res.json(stats)
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
 // GET /api/djs/:id/conflicts?room_id=
-router.get('/:id/conflicts', (req, res) => {
+router.get('/:id/conflicts', async (req, res) => {
   try {
-    const result = checkRepeatRisk(req.params.id, req.query.room_id || null);
-    res.json(result);
+    const result = await checkRepeatRisk(req.params.id, req.query.room_id || null)
+    res.json(result)
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
 // GET /api/djs/:id
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const dj = db.prepare('SELECT * FROM djs WHERE id = ?').get(req.params.id);
-    if (!dj) return res.status(404).json({ error: 'DJ not found' });
-    res.json(buildFullDJ(dj));
+    const result = await db.execute({ sql: 'SELECT * FROM djs WHERE id = ?', args: [req.params.id] })
+    const dj = result.rows[0]
+    if (!dj) return res.status(404).json({ error: 'DJ not found' })
+    res.json(await buildFullDJ(dj))
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
 // POST /api/djs
-router.post('/', (req, res) => {
-  const { name, avatar_url, rating = 3, notes, genres = [], roomIds = [] } = req.body;
-
-  if (!name) return res.status(400).json({ error: 'name is required' });
+router.post('/', async (req, res) => {
+  const { name, avatar_url, rating = 3, notes, genres = [], roomIds = [] } = req.body
+  if (!name) return res.status(400).json({ error: 'name is required' })
 
   try {
-    const insertDJ = db.prepare(
-      'INSERT INTO djs (name, avatar_url, rating, notes) VALUES (?, ?, ?, ?)'
-    );
-    const insertGenre = db.prepare(
-      'INSERT OR IGNORE INTO dj_genres (dj_id, genre) VALUES (?, ?)'
-    );
-    const insertRoom = db.prepare(
-      'INSERT OR IGNORE INTO dj_rooms (dj_id, room_id) VALUES (?, ?)'
-    );
+    const info = await db.execute({
+      sql: 'INSERT INTO djs (name, avatar_url, rating, notes) VALUES (?, ?, ?, ?)',
+      args: [name, avatar_url || null, rating, notes || null],
+    })
+    const djId = Number(info.lastInsertRowid)
 
-    const create = db.transaction(() => {
-      const info = insertDJ.run(name, avatar_url || null, rating, notes || null);
-      const djId = info.lastInsertRowid;
-      for (const genre of genres) {
-        if (genre) insertGenre.run(djId, genre);
-      }
-      for (const roomId of roomIds) {
-        if (roomId) insertRoom.run(djId, roomId);
-      }
-      return djId;
-    });
+    for (const genre of genres) {
+      if (genre) await db.execute({ sql: 'INSERT OR IGNORE INTO dj_genres (dj_id, genre) VALUES (?, ?)', args: [djId, genre] })
+    }
+    for (const roomId of roomIds) {
+      if (roomId) await db.execute({ sql: 'INSERT OR IGNORE INTO dj_rooms (dj_id, room_id) VALUES (?, ?)', args: [djId, roomId] })
+    }
 
-    const djId = create();
-    const dj = db.prepare('SELECT * FROM djs WHERE id = ?').get(djId);
-    res.status(201).json(buildFullDJ(dj));
+    const djResult = await db.execute({ sql: 'SELECT * FROM djs WHERE id = ?', args: [djId] })
+    res.status(201).json(await buildFullDJ(djResult.rows[0]))
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
 // PUT /api/djs/:id
-router.put('/:id', (req, res) => {
-  const { name, avatar_url, rating, notes, genres = [], roomIds = [] } = req.body;
+router.put('/:id', async (req, res) => {
+  const { name, avatar_url, rating, notes, genres = [], roomIds = [] } = req.body
 
   try {
-    const dj = db.prepare('SELECT * FROM djs WHERE id = ?').get(req.params.id);
-    if (!dj) return res.status(404).json({ error: 'DJ not found' });
+    const existing = await db.execute({ sql: 'SELECT * FROM djs WHERE id = ?', args: [req.params.id] })
+    const dj = existing.rows[0]
+    if (!dj) return res.status(404).json({ error: 'DJ not found' })
 
-    const updateDJ = db.prepare(
-      `UPDATE djs SET
-         name       = COALESCE(?, name),
-         avatar_url = COALESCE(?, avatar_url),
-         rating     = COALESCE(?, rating),
-         notes      = COALESCE(?, notes)
-       WHERE id = ?`
-    );
-    const deleteGenres = db.prepare('DELETE FROM dj_genres WHERE dj_id = ?');
-    const insertGenre  = db.prepare('INSERT OR IGNORE INTO dj_genres (dj_id, genre) VALUES (?, ?)');
-    const deleteRooms  = db.prepare('DELETE FROM dj_rooms WHERE dj_id = ?');
-    const insertRoom   = db.prepare('INSERT OR IGNORE INTO dj_rooms (dj_id, room_id) VALUES (?, ?)');
+    await db.execute({
+      sql: `UPDATE djs SET
+              name       = COALESCE(?, name),
+              avatar_url = COALESCE(?, avatar_url),
+              rating     = COALESCE(?, rating),
+              notes      = COALESCE(?, notes)
+            WHERE id = ?`,
+      args: [name || null, avatar_url || null, rating || null, notes || null, dj.id],
+    })
 
-    const update = db.transaction(() => {
-      updateDJ.run(name || null, avatar_url || null, rating || null, notes || null, dj.id);
-      deleteGenres.run(dj.id);
-      for (const genre of genres) {
-        if (genre) insertGenre.run(dj.id, genre);
-      }
-      deleteRooms.run(dj.id);
-      for (const roomId of roomIds) {
-        if (roomId) insertRoom.run(dj.id, roomId);
-      }
-    });
+    await db.execute({ sql: 'DELETE FROM dj_genres WHERE dj_id = ?', args: [dj.id] })
+    for (const genre of genres) {
+      if (genre) await db.execute({ sql: 'INSERT OR IGNORE INTO dj_genres (dj_id, genre) VALUES (?, ?)', args: [dj.id, genre] })
+    }
 
-    update();
-    const updated = db.prepare('SELECT * FROM djs WHERE id = ?').get(dj.id);
-    res.json(buildFullDJ(updated));
+    await db.execute({ sql: 'DELETE FROM dj_rooms WHERE dj_id = ?', args: [dj.id] })
+    for (const roomId of roomIds) {
+      if (roomId) await db.execute({ sql: 'INSERT OR IGNORE INTO dj_rooms (dj_id, room_id) VALUES (?, ?)', args: [dj.id, roomId] })
+    }
+
+    const updatedResult = await db.execute({ sql: 'SELECT * FROM djs WHERE id = ?', args: [dj.id] })
+    res.json(await buildFullDJ(updatedResult.rows[0]))
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
 // DELETE /api/djs/:id
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const dj = db.prepare('SELECT * FROM djs WHERE id = ?').get(req.params.id);
-    if (!dj) return res.status(404).json({ error: 'DJ not found' });
-    db.prepare('DELETE FROM djs WHERE id = ?').run(req.params.id);
-    res.json({ success: true });
+    const existing = await db.execute({ sql: 'SELECT * FROM djs WHERE id = ?', args: [req.params.id] })
+    const dj = existing.rows[0]
+    if (!dj) return res.status(404).json({ error: 'DJ not found' })
+    await db.execute({ sql: 'DELETE FROM djs WHERE id = ?', args: [req.params.id] })
+    res.json({ success: true })
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
-export default router;
+export default router
