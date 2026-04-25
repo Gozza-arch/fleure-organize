@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { format, formatDistanceToNow } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { enUS } from 'date-fns/locale'
 import StatCard from '../components/ui/StatCard.jsx'
 import FlyerPreview from '../components/events/FlyerPreview.jsx'
 import EventForm from '../components/events/EventForm.jsx'
@@ -12,13 +12,13 @@ import { getRooms } from '../api/rooms.js'
 
 function safeDate(dateStr) {
   if (!dateStr) return '—'
-  try { return format(new Date(dateStr), 'dd MMM yyyy • HH:mm', { locale: fr }) }
+  try { return format(new Date(dateStr), 'dd MMM yyyy • HH:mm', { locale: enUS }) }
   catch { return dateStr }
 }
 
 function timeUntil(dateStr) {
   if (!dateStr) return ''
-  try { return formatDistanceToNow(new Date(dateStr), { locale: fr, addSuffix: true }) }
+  try { return formatDistanceToNow(new Date(dateStr), { locale: enUS, addSuffix: true }) }
   catch { return '' }
 }
 
@@ -35,7 +35,7 @@ export default function Dashboard() {
   const [roomFilter, setRoomFilter] = useState('')
   const [djFilter, setDjFilter] = useState('')
 
-  const today = format(new Date(), 'EEEE d MMMM yyyy', { locale: fr })
+  const today = format(new Date(), 'EEEE d MMMM yyyy', { locale: enUS })
   const todayCapitalized = today.charAt(0).toUpperCase() + today.slice(1)
 
   const fetchData = () => {
