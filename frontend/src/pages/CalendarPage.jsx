@@ -97,11 +97,11 @@ export default function CalendarPage() {
 
       {/* ── Header ──────────────────────────────────── */}
       <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-6xl font-black text-white leading-none capitalize">
+        <div className="flex items-baseline gap-4">
+          <h1 className="text-5xl font-black text-white leading-none capitalize">
             {format(currentMonth, 'MMMM', { locale: fr })}
           </h1>
-          <p className="text-6xl font-black text-zinc-700 leading-none mt-1">
+          <p className="text-5xl font-black text-zinc-700 leading-none">
             {format(currentMonth, 'yyyy')}
           </p>
         </div>
