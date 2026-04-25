@@ -12,8 +12,16 @@ import { getRooms } from '../api/rooms.js'
 
 function safeDate(dateStr) {
   if (!dateStr) return '—'
-  try { return format(new Date(dateStr), 'dd MMM yyyy • HH:mm', { locale: enUS }) }
+  try { return format(new Date(dateStr), 'MMM dd, yyyy • h:mmaaa', { locale: enUS }) }
   catch { return dateStr }
+}
+
+function formatTime12h(time) {
+  if (!time) return ''
+  const [h, m] = time.split(':').map(Number)
+  const period = h >= 12 ? 'pm' : 'am'
+  const hour = h % 12 || 12
+  return m === 0 ? `${hour}${period}` : `${hour}:${String(m).padStart(2, '0')}${period}`
 }
 
 function timeUntil(dateStr) {
@@ -130,7 +138,7 @@ export default function Dashboard() {
                     <div className="flex flex-wrap gap-1.5 mt-3">
                       {nextEvent.djs.map(d => (
                         <span key={d.id} className="text-xs bg-white/10 text-zinc-300 px-2.5 py-1 rounded-full font-medium border border-white/10">
-                          🎧 {d.name}{d.slot_start ? ` · ${d.slot_start}` : ''}
+                          🎧 {d.name}{d.slot_start ? ` · ${formatTime12h(d.slot_start)}` : ''}
                         </span>
                       ))}
                     </div>
@@ -234,7 +242,7 @@ export default function Dashboard() {
                         <div className="flex flex-wrap gap-1 mt-1">
                           {event.djs.map(d => (
                             <span key={d.id} className="text-xs bg-zinc-800 text-zinc-400 border border-zinc-700 px-2 py-0.5 rounded-full">
-                              🎧 {d.name}{d.slot_start ? ` ${d.slot_start}` : ''}
+                              🎧 {d.name}{d.slot_start ? ` ${formatTime12h(d.slot_start)}` : ''}
                             </span>
                           ))}
                         </div>
