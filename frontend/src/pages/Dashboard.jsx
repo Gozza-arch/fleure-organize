@@ -47,55 +47,152 @@ export default function Dashboard() {
   const cardRefs = useRef({})
 
   const handleCapture = useCallback(async (event) => {
-    const { default: html2canvas } = await import('html2canvas')
-
-    // Carte dédiée à la capture — rendu simple, pas de blur/backdrop
-    const card = document.createElement('div')
-    card.style.cssText = `
-      position: fixed; left: -9999px; top: 0;
-      width: 800px; background: #111827;
-      border-radius: 16px; overflow: hidden;
-      font-family: system-ui, -apple-system, sans-serif;
-      display: flex; border: 1px solid #374151;
-    `
-
     const accent = event.color || event.room_color || '#8b5cf6'
+    const SCALE = 2
+    const W = 900
+    const FLYER_W = event.flyer_url ? 220 : 0
+    const PAD = 36
+    const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
 
-    card.innerHTML = `
-      <div style="width:6px;background:${accent};flex-shrink:0;"></div>
-      <div style="flex:1;padding:32px 28px;display:flex;flex-direction:column;gap:16px;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
-          <div>
-            <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">Next Event</div>
-            <div style="font-size:32px;font-weight:900;color:#fff;line-height:1.1;">${event.title}</div>
-          </div>
-          ${event.room_name ? `<span style="background:${accent};color:#fff;font-size:12px;font-weight:700;height:34px;line-height:34px;padding:0 18px;border-radius:999px;white-space:nowrap;display:inline-block;overflow:hidden;">${event.room_name}</span>` : ''}
-        </div>
-        ${event.djs?.length > 0 ? `
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-            ${event.djs.map(d => `
-              <span style="background:#1f2937;border:1px solid #374151;color:#d1d5db;font-size:13px;font-weight:600;height:36px;line-height:36px;padding:0 18px;border-radius:999px;display:inline-block;white-space:nowrap;overflow:hidden;">${d.name}${d.slot_start ? ` · ${formatTime12h(d.slot_start)}` : ''}</span>
-            `).join('')}
-          </div>
-        ` : ''}
-        <div style="color:#9ca3af;font-size:13px;font-weight:500;">📅 ${safeDate(event.start_datetime)}</div>
-        <div style="font-size:11px;color:#4b5563;font-weight:600;letter-spacing:.05em;">FLEURE ORGANIZE</div>
-      </div>
-      ${event.flyer_url ? `
-        <div style="width:200px;flex-shrink:0;overflow:hidden;position:relative;">
-          <img src="${event.flyer_url}" style="width:100%;height:100%;object-fit:cover;" crossorigin="anonymous"/>
-        </div>
-      ` : ''}
-    `
+    // Pré-calcul layout pills
+    const tmpCanvas = document.createElement('canvas')
+    const tmpCtx = tmpCanvas.getContext('2d')
+    tmpCtx.font = `600 14px ${FONT}`
+    const PILL_H = 36
+    const PILL_GAP = 8
+    const MAX_ROW_W = W - FLYER_W - PAD * 2 - 6
 
-    document.body.appendChild(card)
-    const canvas = await html2canvas(card, { useCORS: true, scale: 2, backgroundColor: '#111827' })
-    document.body.removeChild(card)
+    const pills = (event.djs || []).map(d => ({
+      text: `🎧 ${d.name}${d.slot_start ? ` · ${formatTime12h(d.slot_start)}` : ''}`,
+      w: tmpCtx.measureText(`🎧 ${d.name}${d.slot_start ? ` · ${formatTime12h(d.slot_start)}` : ''}`).width + 40
+    }))
 
-    const link = document.createElement('a')
+    // Disposition pills sur lignes
+    const rows = []
+    let row = [], rowW = 0
+    pills.forEach(p => {
+      if (rowW + p.w + (row.length ? PILL_GAP : 0) > MAX_ROW_W && row.length) {
+        rows.push(row); row = [p]; rowW = p.w
+      } else {
+        row.push(p); rowW += p.w + (row.length > 1 ? PILL_GAP : 0)
+      }
+    })
+    if (row.length) rows.push(row)
+
+    const H = PAD + 18 + PAD + 44 + (rows.length * (PILL_H + PILL_GAP)) + PAD + 20 + PAD
+
+    const canvas = document.createElement('canvas')
+    canvas.width = W * SCALE
+    canvas.height = H * SCALE
+    const ctx = canvas.getContext('2d')
+    ctx.scale(SCALE, SCALE)
+
+    const rr = (x, y, w, h, r) => {
+      ctx.beginPath()
+      ctx.moveTo(x + r, y)
+      ctx.lineTo(x + w - r, y)
+      ctx.arcTo(x + w, y, x + w, y + r, r)
+      ctx.lineTo(x + w, y + h - r)
+      ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
+      ctx.lineTo(x + r, y + h)
+      ctx.arcTo(x, y + h, x, y + h - r, r)
+      ctx.lineTo(x, y + r)
+      ctx.arcTo(x, y, x + r, y, r)
+      ctx.closePath()
+    }
+
+    // Fond
+    ctx.fillStyle = '#111827'
+    rr(0, 0, W, H, 16)
+    ctx.fill()
+
+    // Barre accent gauche
+    ctx.fillStyle = accent
+    ctx.fillRect(0, 0, 6, H)
+    ctx.fillStyle = '#111827'
+    ctx.fillRect(0, 0, 6, 16)
+    ctx.fillRect(0, H - 16, 6, 16)
+    ctx.fillStyle = accent
+    rr(0, 0, 16, 16, 8); ctx.fill()
+    rr(0, H - 16, 16, 16, 8); ctx.fill()
+    ctx.fillStyle = accent
+    ctx.fillRect(0, 8, 6, H - 16)
+
+    const CX = 6 + PAD
+
+    // Label NEXT EVENT
+    ctx.fillStyle = '#6b7280'
+    ctx.font = `700 11px ${FONT}`
+    ctx.fillText('NEXT EVENT', CX, PAD + 12)
+
+    // Badge room (haut droite)
+    if (event.room_name) {
+      ctx.font = `700 13px ${FONT}`
+      const rW = ctx.measureText(event.room_name).width + 36
+      const rH = 34
+      const rX = W - FLYER_W - PAD - rW
+      const rY = PAD - 4
+      ctx.fillStyle = accent
+      rr(rX, rY, rW, rH, rH / 2); ctx.fill()
+      ctx.fillStyle = '#fff'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(event.room_name, rX + 18, rY + rH / 2)
+      ctx.textBaseline = 'alphabetic'
+    }
+
+    // Titre
+    ctx.fillStyle = '#ffffff'
+    ctx.font = `900 38px ${FONT}`
+    ctx.fillText(event.title, CX, PAD + 16 + 44)
+
+    // Pills DJs
+    let pillY = PAD + 16 + 44 + 20
+    rows.forEach(rowPills => {
+      let pillX = CX
+      rowPills.forEach(p => {
+        ctx.fillStyle = '#1f2937'
+        rr(pillX, pillY, p.w, PILL_H, PILL_H / 2); ctx.fill()
+        ctx.strokeStyle = '#374151'; ctx.lineWidth = 1
+        rr(pillX, pillY, p.w, PILL_H, PILL_H / 2); ctx.stroke()
+        ctx.fillStyle = '#d1d5db'
+        ctx.font = `600 14px ${FONT}`
+        ctx.textBaseline = 'middle'
+        ctx.fillText(p.text, pillX + 20, pillY + PILL_H / 2)
+        ctx.textBaseline = 'alphabetic'
+        pillX += p.w + PILL_GAP
+      })
+      pillY += PILL_H + PILL_GAP
+    })
+
+    // Date
+    const dateLabel = safeDate(event.start_datetime)
+    ctx.fillStyle = '#9ca3af'
+    ctx.font = `500 13px ${FONT}`
+    ctx.fillText(`📅 ${dateLabel}`, CX, pillY + 20)
+
+    // FLEURE ORGANIZE
+    ctx.fillStyle = '#374151'
+    ctx.font = `600 11px ${FONT}`
+    ctx.fillText('FLEURE ORGANIZE', CX, H - PAD + 8)
+
+    // Flyer
+    if (event.flyer_url) {
+      try {
+        const img = await new Promise((res, rej) => {
+          const i = new Image(); i.crossOrigin = 'anonymous'
+          i.onload = () => res(i); i.onerror = rej
+          i.src = event.flyer_url
+        })
+        ctx.save()
+        rr(W - FLYER_W, 0, FLYER_W, H, 16); ctx.clip()
+        ctx.drawImage(img, W - FLYER_W, 0, FLYER_W, H)
+        ctx.restore()
+      } catch (_) {}
+    }
+
     const dateStr = event.start_datetime ? format(new Date(event.start_datetime), 'MMM dd yyyy', { locale: enUS }) : ''
-    const roomStr = event.room_name || ''
-    link.download = `${event.title} - ${roomStr} - ${dateStr}.png`
+    const link = document.createElement('a')
+    link.download = `${event.title} - ${event.room_name || ''} - ${dateStr}.png`
     link.href = canvas.toDataURL('image/png')
     link.click()
   }, [])
