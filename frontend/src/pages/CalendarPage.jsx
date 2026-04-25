@@ -173,10 +173,11 @@ export default function CalendarPage() {
                   }`}
                   style={hasEvent && day && isCurrentMonth ? { backgroundColor: cellBg } : !day || !isCurrentMonth ? {} : { backgroundColor: '#141414' }}
                 >
-                  {/* Flyer aperçu en bas à droite */}
+                  {/* Flyer pleine hauteur à droite */}
                   {firstEvent?.flyer_url && isCurrentMonth && (
-                    <div className="absolute bottom-2 right-2 w-24 h-24 rounded-lg overflow-hidden border-2 border-white/20 shadow-lg flex-shrink-0">
+                    <div className="absolute top-0 right-0 bottom-0 w-28 rounded-r-xl overflow-hidden">
                       <img src={firstEvent.flyer_url} className="w-full h-full object-cover" alt="" />
+                      <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${cellBg} 0%, transparent 40%)` }} />
                     </div>
                   )}
                   {day && (
