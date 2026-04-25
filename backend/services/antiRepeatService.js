@@ -52,27 +52,30 @@ async function checkRepeatRisk(djId, roomId) {
   })
   const totalCount = totalResult.rows[0] ? Number(totalResult.rows[0].cnt) : 0
 
-  let roomCount = 0
+  let daysSinceLast = null
   if (rid) {
-    const roomResult = await db.execute({
-      sql: 'SELECT COUNT(*) as cnt FROM dj_performance_log WHERE dj_id = ? AND room_id = ?',
+    const lastResult = await db.execute({
+      sql: `SELECT MAX(performed_at) as last_date FROM dj_performance_log WHERE dj_id = ? AND room_id = ?`,
       args: [id, rid],
     })
-    roomCount = roomResult.rows[0] ? Number(roomResult.rows[0].cnt) : 0
+    const lastDate = lastResult.rows[0]?.last_date
+    if (lastDate) {
+      daysSinceLast = Math.floor((Date.now() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24))
+    }
   }
 
   let risk = 'none'
   let message = 'Aucun risque de répétition détecté.'
 
-  if (totalCount > 10 || roomCount > 6) {
+  if (daysSinceLast !== null && daysSinceLast <= 15) {
     risk = 'danger'
-    message = `Danger : ce DJ a joué ${totalCount} fois au total et ${roomCount} fois dans cette salle. Forte surexposition.`
-  } else if (totalCount > 5 || roomCount > 3) {
+    message = `Danger : ce DJ a joué dans cette room il y a seulement ${daysSinceLast} jour${daysSinceLast > 1 ? 's' : ''} (moins de 15 jours).`
+  } else if (daysSinceLast !== null && daysSinceLast <= 30) {
     risk = 'warning'
-    message = `Attention : ce DJ a joué ${totalCount} fois au total et ${roomCount} fois dans cette salle. Rotation à surveiller.`
+    message = `Attention : ce DJ a joué dans cette room il y a ${daysSinceLast} jours (moins de 30 jours).`
   }
 
-  return { risk, message, totalCount, roomCount }
+  return { risk, message, totalCount, daysSinceLast }
 }
 
 export { getDJStats, checkRepeatRisk }

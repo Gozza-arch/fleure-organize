@@ -134,14 +134,14 @@ export default function SettingsPage() {
             <span className="text-xl flex-shrink-0">⚠️</span>
             <div>
               <div className="font-semibold text-amber-400 text-sm">Avertissement</div>
-              <div className="text-amber-500/70 text-xs mt-0.5">Le DJ a joué dans cette room il y a moins de 60 jours.</div>
+              <div className="text-amber-500/70 text-xs mt-0.5">Le DJ a joué dans cette room il y a moins de 30 jours.</div>
             </div>
           </div>
           <div className="flex items-start gap-3 bg-red-900/20 border border-red-700/30 rounded-xl p-4">
             <span className="text-xl flex-shrink-0">❌</span>
             <div>
               <div className="font-semibold text-red-400 text-sm">Danger — Répétition trop rapprochée</div>
-              <div className="text-red-500/70 text-xs mt-0.5">Le DJ a joué dans cette room il y a moins de 30 jours.</div>
+              <div className="text-red-500/70 text-xs mt-0.5">Le DJ a joué dans cette room il y a moins de 15 jours.</div>
             </div>
           </div>
         </div>
