@@ -31,6 +31,14 @@ function safeFormat(dateStr, fmt) {
   catch { return dateStr }
 }
 
+function formatTime12h(time) {
+  if (!time) return ''
+  const [h, m] = time.split(':').map(Number)
+  const period = h >= 12 ? 'pm' : 'am'
+  const hour = h % 12 || 12
+  return m === 0 ? `${hour}${period}` : `${hour}:${String(m).padStart(2, '0')}${period}`
+}
+
 export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [events, setEvents] = useState([])
@@ -166,7 +174,7 @@ export default function CalendarPage() {
                 <div
                   key={idx}
                   onClick={() => day && isCurrentMonth && handleDayClick(day)}
-                  className={`relative min-h-[180px] rounded-xl p-3 transition-all duration-200 ${
+                  className={`relative min-h-[180px] rounded-xl overflow-hidden transition-all duration-200 ${
                     !day ? 'bg-transparent' :
                     !isCurrentMonth ? 'bg-[#0f0f0f] opacity-30 cursor-default' :
                     hasEvent ? 'cursor-pointer hover:brightness-110' :
@@ -174,41 +182,44 @@ export default function CalendarPage() {
                   }`}
                   style={hasEvent && day && isCurrentMonth ? { backgroundColor: cellBg } : !day || !isCurrentMonth ? {} : { backgroundColor: '#141414' }}
                 >
-                  {/* Flyer pleine hauteur à droite */}
-                  {firstEvent?.flyer_url && isCurrentMonth && (
-                    <div className="absolute top-0 right-0 bottom-0 w-28 rounded-r-xl overflow-hidden">
-                      <img src={firstEvent.flyer_url} className="w-full h-full object-cover" alt="" />
-                      <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${cellBg} 0%, transparent 40%)` }} />
-                    </div>
-                  )}
                   {day && (
-                    <>
+                    <div className="p-3 h-full flex flex-col">
                       {/* Date number */}
-                      <div className={`text-sm font-bold mb-2 w-7 h-7 flex items-center justify-center rounded-full ${
+                      <div className={`text-sm font-bold mb-2 w-7 h-7 flex items-center justify-center rounded-full flex-shrink-0 ${
                         isToday
                           ? 'bg-white text-black'
                           : hasEvent
-                          ? 'text-white/80'
+                          ? 'bg-black/30 text-white'
                           : 'text-zinc-600'
                       }`}>
                         {format(day, 'd')}
                       </div>
 
-                      {/* First event title — fills the cell */}
+                      {/* Titre + DJs */}
                       {firstEvent && (
-                        <div className="mt-1">
-                          <div className="text-white font-extrabold text-sm leading-tight tracking-wide uppercase">
+                        <div className="flex-1 flex flex-col justify-end">
+                          <div
+                            className="font-extrabold text-base leading-tight tracking-wide uppercase text-white"
+                            style={{ textShadow: '0 1px 6px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.8)' }}
+                          >
                             {firstEvent.title}
                           </div>
+
                           {firstEvent.djs?.length > 0 && (
-                            <div className="mt-2 space-y-1">
+                            <div className="mt-1.5 space-y-0.5">
                               {firstEvent.djs.map(d => (
-                                <div key={d.id} className="flex items-center gap-1.5 text-white font-semibold text-xs">
-                                  <svg className="w-3 h-3 flex-shrink-0 opacity-70" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                                <div
+                                  key={d.id}
+                                  className="flex items-center gap-1 text-white text-xs font-semibold"
+                                  style={{ textShadow: '0 1px 4px rgba(0,0,0,0.95)' }}
+                                >
+                                  <svg className="w-2.5 h-2.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                                   </svg>
                                   <span>{d.name}</span>
-                                  {d.slot_start && <span className="opacity-70 font-normal">· {d.slot_start}</span>}
+                                  {d.slot_start && (
+                                    <span className="font-normal opacity-90">· {formatTime12h(d.slot_start)}</span>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -218,13 +229,13 @@ export default function CalendarPage() {
 
                       {/* +N more events badge */}
                       {dayEvents.length > 1 && (
-                        <div className="absolute bottom-2 right-2">
-                          <span className="text-xs font-bold text-white/80 bg-black/30 px-1.5 py-0.5 rounded-full">
+                        <div className="absolute top-2 right-2">
+                          <span className="text-xs font-bold text-white bg-black/50 px-1.5 py-0.5 rounded-full">
                             +{dayEvents.length - 1}
                           </span>
                         </div>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
               )
