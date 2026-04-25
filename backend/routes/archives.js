@@ -25,7 +25,8 @@ router.get('/', async (req, res) => {
       sql: `SELECT e.*,
               d.name  AS dj_name,
               r.name  AS room_name,
-              r.color AS room_color
+              r.color AS room_color,
+              r.icon  AS room_icon
             FROM events e
             LEFT JOIN djs   d ON d.id = e.dj_id
             LEFT JOIN rooms r ON r.id = e.room_id

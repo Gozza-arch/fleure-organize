@@ -124,7 +124,8 @@ export default function CalendarPage() {
       {rooms.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {rooms.map(room => (
-            <span key={room.id} className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-white" style={{ backgroundColor: room.color || '#8b5cf6' }}>
+            <span key={room.id} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-white" style={{ backgroundColor: room.color || '#8b5cf6' }}>
+              {room.icon && <span>{room.icon}</span>}
               {room.name}
             </span>
           ))}

@@ -85,6 +85,7 @@ async function initDb() {
   try { await db.execute({ sql: 'ALTER TABLE event_djs ADD COLUMN slot_start TEXT', args: [] }) } catch {}
   try { await db.execute({ sql: 'ALTER TABLE event_djs ADD COLUMN slot_end TEXT', args: [] }) } catch {}
   try { await db.execute({ sql: 'ALTER TABLE events ADD COLUMN color TEXT', args: [] }) } catch {}
+  try { await db.execute({ sql: 'ALTER TABLE rooms ADD COLUMN icon TEXT', args: [] }) } catch {}
 
   // Seed rooms si aucune n'existe
   const countResult = await db.execute({ sql: 'SELECT COUNT(*) as cnt FROM rooms', args: [] })

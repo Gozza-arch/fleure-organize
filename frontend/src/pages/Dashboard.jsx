@@ -147,7 +147,8 @@ export default function Dashboard() {
                 <span className="text-zinc-300 font-medium text-sm">📅 {safeDate(nextEvent.start_datetime)}</span>
                 <span className="text-zinc-600 text-xs">{timeUntil(nextEvent.start_datetime)}</span>
                 {nextEvent.room_name && (
-                  <span className="text-xs text-white px-3 py-1 rounded-full font-medium" style={{ backgroundColor: nextEvent.color || nextEvent.room_color || '#8b5cf6' }}>
+                  <span className="flex items-center gap-1.5 text-xs text-white px-3 py-1 rounded-full font-medium" style={{ backgroundColor: nextEvent.color || nextEvent.room_color || '#8b5cf6' }}>
+                    {nextEvent.room_icon && <span>{nextEvent.room_icon}</span>}
                     {nextEvent.room_name}
                   </span>
                 )}
@@ -243,9 +244,10 @@ export default function Dashboard() {
 
                     {event.room_name && (
                       <span
-                        className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold text-white flex-shrink-0"
+                        className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-white flex-shrink-0"
                         style={{ backgroundColor: event.color || event.room_color || '#8b5cf6' }}
                       >
+                        {event.room_icon && <span>{event.room_icon}</span>}
                         {event.room_name}
                       </span>
                     )}

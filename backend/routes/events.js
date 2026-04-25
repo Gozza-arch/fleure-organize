@@ -8,7 +8,8 @@ const router = Router()
 const BASE_SELECT = `
   SELECT e.*,
     r.name  AS room_name,
-    r.color AS room_color
+    r.color AS room_color,
+    r.icon  AS room_icon
   FROM events e
   LEFT JOIN rooms r ON r.id = e.room_id
 `

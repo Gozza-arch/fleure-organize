@@ -27,11 +27,14 @@ router.get('/:id', async (req, res) => {
 
 // POST /api/rooms
 router.post('/', async (req, res) => {
-  const { name, color = '#6366f1' } = req.body
+  const { name, color = '#6366f1', icon = '' } = req.body
   if (!name) return res.status(400).json({ error: 'name is required' })
 
   try {
-    const info = await db.execute({ sql: 'INSERT INTO rooms (name, color) VALUES (?, ?)', args: [name, color] })
+    const info = await db.execute({
+      sql: 'INSERT INTO rooms (name, color, icon) VALUES (?, ?, ?)',
+      args: [name, color, icon || null]
+    })
     const result = await db.execute({ sql: 'SELECT * FROM rooms WHERE id = ?', args: [Number(info.lastInsertRowid)] })
     res.status(201).json(result.rows[0])
   } catch (err) {
@@ -46,10 +49,10 @@ router.put('/:id', async (req, res) => {
     const room = existing.rows[0]
     if (!room) return res.status(404).json({ error: 'Room not found' })
 
-    const { name, color } = req.body
+    const { name, color, icon } = req.body
     await db.execute({
-      sql: 'UPDATE rooms SET name = COALESCE(?, name), color = COALESCE(?, color) WHERE id = ?',
-      args: [name || null, color || null, room.id],
+      sql: 'UPDATE rooms SET name = COALESCE(?, name), color = COALESCE(?, color), icon = ? WHERE id = ?',
+      args: [name || null, color || null, icon !== undefined ? (icon || null) : room.icon, room.id],
     })
 
     const updated = await db.execute({ sql: 'SELECT * FROM rooms WHERE id = ?', args: [room.id] })

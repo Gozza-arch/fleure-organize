@@ -22,7 +22,7 @@ function Toast({ message, type, onClose }) {
 export default function SettingsPage() {
   const [rooms, setRooms] = useState([])
   const [roomsLoading, setRoomsLoading] = useState(true)
-  const [newRoom, setNewRoom] = useState({ name: '', color: '#8b5cf6' })
+  const [newRoom, setNewRoom] = useState({ name: '', color: '#8b5cf6', icon: '' })
   const [addingRoom, setAddingRoom] = useState(false)
   const [editingRoom, setEditingRoom] = useState(null)
 
@@ -40,7 +40,7 @@ export default function SettingsPage() {
     e.preventDefault()
     if (!newRoom.name.trim()) return
     setAddingRoom(true)
-    try { await createRoom(newRoom); setNewRoom({ name: '', color: '#8b5cf6' }); fetchRooms(); showToast('Room ajoutée !') }
+    try { await createRoom(newRoom); setNewRoom({ name: '', color: '#8b5cf6', icon: '' }); fetchRooms(); showToast('Room ajoutée !') }
     catch (err) { showToast(err.response?.data?.message || 'Erreur.', 'error') }
     finally { setAddingRoom(false) }
   }
@@ -81,7 +81,15 @@ export default function SettingsPage() {
               <div key={room.id} className="flex items-center gap-4 px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl">
                 {editingRoom?.id === room.id ? (
                   <>
-                    <input type="color" value={editingRoom.color} onChange={e => setEditingRoom(r => ({ ...r, color: e.target.value }))} className="w-9 h-9 rounded-lg cursor-pointer" />
+                    <input type="color" value={editingRoom.color} onChange={e => setEditingRoom(r => ({ ...r, color: e.target.value }))} className="w-9 h-9 rounded-lg cursor-pointer flex-shrink-0" />
+                    <input
+                      type="text"
+                      value={editingRoom.icon}
+                      onChange={e => setEditingRoom(r => ({ ...r, icon: e.target.value }))}
+                      placeholder="🎵"
+                      className="w-14 bg-zinc-700 border border-zinc-600 text-white text-center rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500/40"
+                      maxLength={2}
+                    />
                     <input
                       type="text"
                       value={editingRoom.name}
@@ -95,8 +103,9 @@ export default function SettingsPage() {
                 ) : (
                   <>
                     <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: room.color || '#8b5cf6' }} />
+                    {room.icon && <span className="text-base flex-shrink-0">{room.icon}</span>}
                     <span className="flex-1 font-medium text-zinc-300 text-sm">{room.name}</span>
-                    <button onClick={() => setEditingRoom({ id: room.id, name: room.name, color: room.color || '#8b5cf6' })} className="text-xs text-violet-400 hover:text-violet-300 font-medium transition-colors">Modifier</button>
+                    <button onClick={() => setEditingRoom({ id: room.id, name: room.name, color: room.color || '#8b5cf6', icon: room.icon || '' })} className="text-xs text-violet-400 hover:text-violet-300 font-medium transition-colors">Modifier</button>
                     <button onClick={() => handleDeleteRoom(room)} className="text-xs text-red-500 hover:text-red-400 font-medium transition-colors">Supprimer</button>
                   </>
                 )}
@@ -105,7 +114,15 @@ export default function SettingsPage() {
 
             {/* Add room */}
             <form onSubmit={handleAddRoom} className="flex items-center gap-3 pt-2">
-              <input type="color" value={newRoom.color} onChange={e => setNewRoom(r => ({ ...r, color: e.target.value }))} className="w-9 h-9 rounded-lg cursor-pointer" />
+              <input type="color" value={newRoom.color} onChange={e => setNewRoom(r => ({ ...r, color: e.target.value }))} className="w-9 h-9 rounded-lg cursor-pointer flex-shrink-0" />
+              <input
+                type="text"
+                value={newRoom.icon}
+                onChange={e => setNewRoom(r => ({ ...r, icon: e.target.value }))}
+                placeholder="🎵"
+                className="w-14 bg-zinc-800 border border-zinc-700 text-white text-center placeholder-zinc-600 rounded-xl px-2 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 transition"
+                maxLength={2}
+              />
               <input
                 type="text"
                 value={newRoom.name}
