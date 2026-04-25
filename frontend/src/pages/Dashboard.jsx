@@ -69,14 +69,12 @@ export default function Dashboard() {
             <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">Next Event</div>
             <div style="font-size:32px;font-weight:900;color:#fff;line-height:1.1;">${event.title}</div>
           </div>
-          ${event.room_name ? `<span style="background:${accent};color:#fff;font-size:12px;font-weight:700;padding:8px 16px;border-radius:999px;white-space:nowrap;display:inline-block;line-height:1;">${event.room_icon || ''} ${event.room_name}</span>` : ''}
+          ${event.room_name ? `<span style="background:${accent};color:#fff;font-size:12px;font-weight:700;padding:9px 18px;border-radius:999px;white-space:nowrap;display:inline-block;">${event.room_name}</span>` : ''}
         </div>
         ${event.djs?.length > 0 ? `
           <div style="display:flex;flex-wrap:wrap;gap:8px;">
             ${event.djs.map(d => `
-              <span style="background:#1f2937;border:1px solid #374151;color:#d1d5db;font-size:13px;font-weight:600;padding:8px 16px;border-radius:999px;display:inline-block;line-height:1;white-space:nowrap;">
-                🎧 ${d.name}${d.slot_start ? ` · ${formatTime12h(d.slot_start)}` : ''}
-              </span>
+              <span style="background:#1f2937;border:1px solid #374151;color:#d1d5db;font-size:13px;font-weight:600;padding:9px 18px;border-radius:999px;display:inline-block;white-space:nowrap;">${d.name}${d.slot_start ? ` · ${formatTime12h(d.slot_start)}` : ''}</span>
             `).join('')}
           </div>
         ` : ''}
