@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Button from '../components/ui/Button.jsx'
+import EmojiPicker from '../components/ui/EmojiPicker.jsx'
 import { getRooms, createRoom, updateRoom, deleteRoom } from '../api/rooms.js'
 
 function Toast({ message, type, onClose }) {
@@ -82,14 +83,7 @@ export default function SettingsPage() {
                 {editingRoom?.id === room.id ? (
                   <>
                     <input type="color" value={editingRoom.color} onChange={e => setEditingRoom(r => ({ ...r, color: e.target.value }))} className="w-9 h-9 rounded-lg cursor-pointer flex-shrink-0" />
-                    <input
-                      type="text"
-                      value={editingRoom.icon}
-                      onChange={e => setEditingRoom(r => ({ ...r, icon: e.target.value }))}
-                      placeholder="🎵"
-                      title="Windows : Win + .  —  Mac : Cmd + Ctrl + Espace"
-                      className="w-16 bg-zinc-700 border border-zinc-600 text-white text-center rounded-lg px-2 py-1.5 text-lg focus:outline-none focus:ring-1 focus:ring-violet-500/40"
-                    />
+                    <EmojiPicker value={editingRoom.icon} onChange={v => setEditingRoom(r => ({ ...r, icon: v }))} />
                     <input
                       type="text"
                       value={editingRoom.name}
@@ -115,14 +109,7 @@ export default function SettingsPage() {
             {/* Add room */}
             <form onSubmit={handleAddRoom} className="flex items-center gap-3 pt-2">
               <input type="color" value={newRoom.color} onChange={e => setNewRoom(r => ({ ...r, color: e.target.value }))} className="w-9 h-9 rounded-lg cursor-pointer flex-shrink-0" />
-              <input
-                type="text"
-                value={newRoom.icon}
-                onChange={e => setNewRoom(r => ({ ...r, icon: e.target.value }))}
-                placeholder="🎵"
-                title="Windows : Win + .  —  Mac : Cmd + Ctrl + Espace"
-                className="w-16 bg-zinc-800 border border-zinc-700 text-white text-center placeholder-zinc-600 rounded-xl px-2 py-2.5 text-lg focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 transition"
-              />
+              <EmojiPicker value={newRoom.icon} onChange={v => setNewRoom(r => ({ ...r, icon: v }))} />
               <input
                 type="text"
                 value={newRoom.name}
