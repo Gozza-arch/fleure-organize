@@ -46,11 +46,56 @@ export default function Dashboard() {
   const heroRef = useRef(null)
   const cardRefs = useRef({})
 
-  const handleCapture = useCallback(async (ref) => {
+  const handleCapture = useCallback(async (event) => {
     const { default: html2canvas } = await import('html2canvas')
-    const canvas = await html2canvas(ref.current, { useCORS: true, scale: 2, backgroundColor: '#0a0a0a' })
+
+    // Carte dédiée à la capture — rendu simple, pas de blur/backdrop
+    const card = document.createElement('div')
+    card.style.cssText = `
+      position: fixed; left: -9999px; top: 0;
+      width: 800px; background: #111827;
+      border-radius: 16px; overflow: hidden;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex; border: 1px solid #374151;
+    `
+
+    const accent = event.color || event.room_color || '#8b5cf6'
+
+    card.innerHTML = `
+      <div style="width:6px;background:${accent};flex-shrink:0;"></div>
+      <div style="flex:1;padding:32px 28px;display:flex;flex-direction:column;gap:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">Next Event</div>
+            <div style="font-size:32px;font-weight:900;color:#fff;line-height:1.1;">${event.title}</div>
+          </div>
+          ${event.room_name ? `<div style="background:${accent};color:#fff;font-size:12px;font-weight:700;padding:6px 14px;border-radius:999px;">${event.room_icon || ''} ${event.room_name}</div>` : ''}
+        </div>
+        ${event.djs?.length > 0 ? `
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            ${event.djs.map(d => `
+              <div style="background:#1f2937;border:1px solid #374151;color:#d1d5db;font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px;">
+                🎧 ${d.name}${d.slot_start ? ` · ${formatTime12h(d.slot_start)}` : ''}
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+        <div style="color:#9ca3af;font-size:13px;font-weight:500;">📅 ${safeDate(event.start_datetime)}</div>
+        <div style="margin-top:4px;font-size:11px;color:#4b5563;font-weight:600;letter-spacing:.05em;">FLEURE ORGANIZE</div>
+      </div>
+      ${event.flyer_url ? `
+        <div style="width:200px;flex-shrink:0;overflow:hidden;position:relative;">
+          <img src="${event.flyer_url}" style="width:100%;height:100%;object-fit:cover;" crossorigin="anonymous"/>
+        </div>
+      ` : ''}
+    `
+
+    document.body.appendChild(card)
+    const canvas = await html2canvas(card, { useCORS: true, scale: 2, backgroundColor: '#111827' })
+    document.body.removeChild(card)
+
     const link = document.createElement('a')
-    link.download = 'event-fleure.png'
+    link.download = `${event.title.replace(/\s+/g, '-').toLowerCase()}-fleure.png`
     link.href = canvas.toDataURL('image/png')
     link.click()
   }, [])
@@ -187,7 +232,7 @@ export default function Dashboard() {
                   ✏️ Modifier
                 </button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); handleCapture(heroRef) }}
+                  onClick={(e) => { e.stopPropagation(); handleCapture(nextEvent) }}
                   className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition border border-zinc-700"
                 >
                   📥 Télécharger l'image
@@ -297,7 +342,7 @@ export default function Dashboard() {
                           ✏️ Modifier
                         </button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); handleCapture({ current: cardRefs.current[event.id] }) }}
+                          onClick={(e) => { e.stopPropagation(); handleCapture(event) }}
                           className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition border border-zinc-700"
                         >
                           📥 Télécharger l'image
