@@ -48,7 +48,7 @@ export default function SettingsPage() {
 
   const handleUpdateRoom = async (id) => {
     if (!editingRoom) return
-    try { await updateRoom(id, { name: editingRoom.name, color: editingRoom.color }); setEditingRoom(null); fetchRooms(); showToast('Room mise à jour !') }
+    try { await updateRoom(id, { name: editingRoom.name, color: editingRoom.color, icon: editingRoom.icon }); setEditingRoom(null); fetchRooms(); showToast('Room mise à jour !') }
     catch { showToast('Erreur lors de la mise à jour.', 'error') }
   }
 
