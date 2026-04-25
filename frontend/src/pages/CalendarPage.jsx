@@ -199,7 +199,7 @@ export default function CalendarPage() {
                       {firstEvent && (
                         <div className="flex-1 flex flex-col justify-start mt-1">
                           <div
-                            className="font-extrabold text-lg leading-tight tracking-wide uppercase text-white"
+                            className="font-extrabold text-2xl leading-tight tracking-wide uppercase text-white"
                             style={{ textShadow: '0 1px 6px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.8)' }}
                           >
                             {firstEvent.title}
@@ -210,7 +210,7 @@ export default function CalendarPage() {
                               {firstEvent.djs.map(d => (
                                 <div
                                   key={d.id}
-                                  className="flex items-center gap-1.5 text-white text-sm font-semibold"
+                                  className="flex items-center gap-1.5 text-white text-base font-semibold"
                                   style={{ textShadow: '0 1px 4px rgba(0,0,0,0.95)' }}
                                 >
                                   <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
