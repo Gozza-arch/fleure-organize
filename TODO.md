@@ -1,12 +1,14 @@
 # TODO — Fleure Organize
 
-    - On clique sur un DJ et ainsi on peut programmer a la volée plusieurs évenements, dans plusieurs rooms (ou non)
 
-- Page Calendrier : choisir une couleur pour l'événement
+- Dashboard : le filtre d'événements existe t-il ? Je ne le vois pas car j'ai créé qu'un seul event ?
 
-- Bot discord :
 
-Sans l'appli que nous déveleppons :
+- Calendrier : 
+    . Sur la case du jour, inclure l'image uploadé dans la création.
+    - Ajouter "Supprimer l'événement" dans la modification d'un énvement
 
-- Quand je créé un événement sur mon discord, manuellement je dois :
-    - Créer un message d'annonce afficher à la communauté
+- Fonctionnement général : possibilité d'ajouter un login / mdp en page d'acceuil ?
+
+
+

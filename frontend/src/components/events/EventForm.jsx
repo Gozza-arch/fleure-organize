@@ -3,7 +3,7 @@ import Modal from '../ui/Modal.jsx'
 import Button from '../ui/Button.jsx'
 import ImageUpload from '../ui/ImageUpload.jsx'
 import AntiRepeatWarning from './AntiRepeatWarning.jsx'
-import { createEvent, updateEvent } from '../../api/events.js'
+import { createEvent, updateEvent, deleteEvent } from '../../api/events.js'
 
 function toDatetimeLocal(dateStr) {
   if (!dateStr) return ''
@@ -18,6 +18,7 @@ export default function EventForm({ isOpen, onClose, event, djs = [], rooms = []
     title: '', dj_slots: [], room_id: '', start_date: '', end_date: '', flyer_url: '', color: ''
   })
   const [loading, setLoading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState(null)
   const [djSearch, setDjSearch] = useState('')
   const [djDropdownOpen, setDjDropdownOpen] = useState(false)
@@ -102,6 +103,20 @@ export default function EventForm({ isOpen, onClose, event, djs = [], rooms = []
       setError(err.response?.data?.message || 'Une erreur est survenue.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Supprimer définitivement "${form.title}" ?`)) return
+    setDeleting(true)
+    try {
+      await deleteEvent(event.id)
+      onSaved()
+      onClose()
+    } catch (err) {
+      setError('Erreur lors de la suppression.')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -258,11 +273,18 @@ export default function EventForm({ isOpen, onClose, event, djs = [], rooms = []
           <ImageUpload value={form.flyer_url} onChange={(url) => setForm(f => ({ ...f, flyer_url: url }))} />
         </div>
 
-        <div className="flex justify-end gap-3 pt-2">
-          <Button variant="secondary" onClick={onClose} type="button">Annuler</Button>
-          <Button variant="primary" type="submit" loading={loading}>
-            {event ? 'Enregistrer' : 'Créer l\'événement'}
-          </Button>
+        <div className="flex items-center justify-between pt-2">
+          {event && (
+            <Button variant="danger" type="button" loading={deleting} onClick={handleDelete}>
+              Supprimer l'événement
+            </Button>
+          )}
+          <div className="flex gap-3 ml-auto">
+            <Button variant="secondary" onClick={onClose} type="button">Annuler</Button>
+            <Button variant="primary" type="submit" loading={loading}>
+              {event ? 'Enregistrer' : 'Créer l\'événement'}
+            </Button>
+          </div>
         </div>
       </form>
     </Modal>

@@ -69,7 +69,6 @@ export default function Dashboard() {
 
   const nextEvent = upcoming[0]
   const eventsToList = filtersActive ? filteredEvents : filteredEvents.slice(1)
-  const showList = filtersActive || eventsToList.length > 0 || !nextEvent
 
   if (loading) {
     return (
@@ -165,8 +164,7 @@ export default function Dashboard() {
         )}
 
         {/* Liste événements + filtres */}
-        {showList && (
-          <div>
+        <div>
             {/* Titre */}
             <div className="space-y-3 mb-5">
               <h2 className="text-base font-bold text-white">
@@ -264,7 +262,7 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-        )}
+        </div>
 
       </div>
 
