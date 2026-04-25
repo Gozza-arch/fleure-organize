@@ -175,7 +175,7 @@ export default function CalendarPage() {
                 >
                   {/* Flyer aperçu en bas à droite */}
                   {firstEvent?.flyer_url && isCurrentMonth && (
-                    <div className="absolute bottom-2 right-2 w-14 h-14 rounded-lg overflow-hidden border-2 border-white/20 shadow-lg flex-shrink-0">
+                    <div className="absolute bottom-2 right-2 w-24 h-24 rounded-lg overflow-hidden border-2 border-white/20 shadow-lg flex-shrink-0">
                       <img src={firstEvent.flyer_url} className="w-full h-full object-cover" alt="" />
                     </div>
                   )}
