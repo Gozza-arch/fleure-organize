@@ -64,24 +64,27 @@ export default function Dashboard() {
     card.innerHTML = `
       <div style="width:6px;background:${accent};flex-shrink:0;"></div>
       <div style="flex:1;padding:32px 28px;display:flex;flex-direction:column;gap:16px;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
           <div>
             <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">Next Event</div>
             <div style="font-size:32px;font-weight:900;color:#fff;line-height:1.1;">${event.title}</div>
           </div>
-          ${event.room_name ? `<div style="background:${accent};color:#fff;font-size:12px;font-weight:700;padding:6px 14px;border-radius:999px;">${event.room_icon || ''} ${event.room_name}</div>` : ''}
+          ${event.room_name ? `<div style="background:${accent};color:#fff;font-size:12px;font-weight:700;padding:6px 16px;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;">${event.room_icon || ''} ${event.room_name}</div>` : ''}
         </div>
         ${event.djs?.length > 0 ? `
           <div style="display:flex;flex-wrap:wrap;gap:8px;">
             ${event.djs.map(d => `
-              <div style="background:#1f2937;border:1px solid #374151;color:#d1d5db;font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px;">
+              <div style="background:#1f2937;border:1px solid #374151;color:#d1d5db;font-size:13px;font-weight:600;padding:6px 16px;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:6px;">
                 🎧 ${d.name}${d.slot_start ? ` · ${formatTime12h(d.slot_start)}` : ''}
               </div>
             `).join('')}
           </div>
         ` : ''}
-        <div style="color:#9ca3af;font-size:13px;font-weight:500;">📅 ${safeDate(event.start_datetime)}</div>
-        <div style="margin-top:4px;font-size:11px;color:#4b5563;font-weight:600;letter-spacing:.05em;">FLEURE ORGANIZE</div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <div style="color:#9ca3af;font-size:13px;font-weight:500;">📅 ${safeDate(event.start_datetime)}</div>
+          ${event.room_name ? `<div style="background:${accent}33;border:1px solid ${accent}66;color:#fff;font-size:12px;font-weight:600;padding:4px 12px;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:4px;">${event.room_icon || ''} ${event.room_name}</div>` : ''}
+        </div>
+        <div style="font-size:11px;color:#4b5563;font-weight:600;letter-spacing:.05em;">FLEURE ORGANIZE</div>
       </div>
       ${event.flyer_url ? `
         <div style="width:200px;flex-shrink:0;overflow:hidden;position:relative;">
